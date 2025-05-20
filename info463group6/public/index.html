@@ -4,19 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gesture Keyboard</title>
-  <!-- Use the built CSS, not src/index.css -->
   <link href="%PUBLIC_URL%/favicon.ico" rel="icon" />
 </head>
 
 <body>
-  <div style="margin-bottom: 16px; font-size: 1.1em;">
-    The empty box below the keyboard is a gesture input system. You can draw any shape and assign it to a word. Then once its been added you can draw the gesture again and it will add it to the text box
-  </div>
-  <input class="input" placeholder="Swipe over the virtual keyboard to start" />
-  <canvas id="gestureCanvas" width="500" height="250" style="border:1px solid #ccc;"></canvas>
-  <div class="keyboardContainer">
-    <div class="simple-keyboard"></div>
-  </div>
   <!-- React will inject the bundle here -->
   <div id="root"></div>
 </body>
