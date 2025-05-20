@@ -252,27 +252,51 @@ function App() {
         </div>
       ) : (
         <div>
-          <input
-            ref={inputRef}
-            className="input"
-            placeholder="Swipe over the virtual keyboard to start"
-            style={{ display: "block", margin: "0 auto 18px auto" }}
-          />
-          <canvas
-            ref={canvasRef}
-            id="gestureCanvas"
-            width="500"
-            height="250"
-            style={{
-              border: "1px solid #ccc",
-              display: "block",
-              margin: "0 auto 18px auto",
-              maxWidth: "100%"
-            }}
-          ></canvas>
-          <div className="keyboardContainer" style={{ display: "flex", justifyContent: "center" }}>
-            <div className="simple-keyboard"></div>
-          </div>
+          {!showGestures && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "18px" }}>
+                <input
+                  ref={inputRef}
+                  className="input"
+                  placeholder="Swipe over the virtual keyboard to start"
+                  style={{ display: "block", marginRight: "8px", width: "300px" }}
+                />
+                <button
+                  onClick={() => {
+                    if (inputRef.current) {
+                      inputRef.current.value = "";
+                      if (keyboardRef.current) keyboardRef.current.setInput("");
+                    }
+                  }}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    background: "#f5f5f5",
+                    cursor: "pointer"
+                  }}
+                  aria-label="Clear input"
+                >
+                  Clear
+                </button>
+              </div>
+              <canvas
+                ref={canvasRef}
+                id="gestureCanvas"
+                width="500"
+                height="250"
+                style={{
+                  border: "1px solid #ccc",
+                  display: "block",
+                  margin: "0 auto 18px auto",
+                  maxWidth: "100%"
+                }}
+              ></canvas>
+              <div className="keyboardContainer" style={{ display: "flex", justifyContent: "center" }}>
+                <div className="simple-keyboard"></div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
