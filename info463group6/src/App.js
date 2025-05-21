@@ -36,23 +36,47 @@ function App() {
   useEffect(() => {
     if (showGestures) return;
 
-    keyboardRef.current = new Keyboard({
-      onChange: input => {
-        if (inputRef.current) inputRef.current.value = input;
-      },
-      onKeyPress: button => {
-        if (button === "{shift}" || button === "{lock}") {
-          const currentLayout = keyboardRef.current.options.layoutName;
-          const shiftToggle = currentLayout === "default" ? "shift" : "default";
-          keyboardRef.current.setOptions({ layoutName: shiftToggle });
+    // Delay initialization to ensure .simple-keyboard is in the DOM
+    setTimeout(() => {
+      keyboardRef.current = new Keyboard({
+        onChange: input => {
+          if (inputRef.current) inputRef.current.value = input;
+        },
+        onKeyPress: button => {
+          if (button === "{shift}" || button === "{lock}") {
+            const currentLayout = keyboardRef.current.options.layoutName;
+            const shiftToggle = currentLayout === "default" ? "shift" : "default";
+            keyboardRef.current.setOptions({ layoutName: shiftToggle });
+          }
+        },
+        useMouseEvents: true,
+        modules: [swipe],
+        layout: {
+          default: [
+            "q w e r t y u i o p {bksp}",
+            "a s d f g h j k l",
+            "z x c v b n m",
+            "{shift} {space}"
+          ],
+          shift: [
+            "Q W E R T Y U I O P {bksp}",
+            "A S D F G H J K L",
+            "Z X C V B N M",
+            "{shift} {space}"
+          ]
+        },
+        display: {
+          "{shift}": "⇧",
+          "{lock}": "⇪",
+          "{bksp}": "⌫",
+          "{enter}": "⏎",
+          "{space}": "␣"
         }
-      },
-      useMouseEvents: true,
-      modules: [swipe]
-    });
+      });
+    }, 0);
 
     const handleInput = event => {
-      keyboardRef.current.setInput(event.target.value);
+      if (keyboardRef.current) keyboardRef.current.setInput(event.target.value);
     };
     const inputElem = inputRef.current;
     inputElem.addEventListener("input", handleInput);
@@ -89,8 +113,8 @@ function App() {
           const word = gestureWordMap[result.Name];
           const currentValue = inputRef.current.value;
           const newValue = currentValue
-            ? currentValue.trim() + " " + word
-            : word;
+            ? currentValue.trim() + " " + word + " "
+            : word + " ";
           keyboardRef.current.setInput(newValue);
           inputRef.current.value = newValue;
         }
@@ -280,7 +304,9 @@ function App() {
                   Clear
                 </button>
               </div>
-              <canvas
+              <div className="keyboardContainer" style={{ display: "flex", justifyContent: "center" }}>
+                <div className="simple-keyboard"></div>
+                <canvas
                 ref={canvasRef}
                 id="gestureCanvas"
                 width="500"
@@ -292,8 +318,6 @@ function App() {
                   maxWidth: "100%"
                 }}
               ></canvas>
-              <div className="keyboardContainer" style={{ display: "flex", justifyContent: "center" }}>
-                <div className="simple-keyboard"></div>
               </div>
             </div>
           )}
