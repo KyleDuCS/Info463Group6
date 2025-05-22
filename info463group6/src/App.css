@@ -44,43 +44,94 @@
   }
 }
 
-.descriptionText {
-  margin-top: 36px;
-  margin-bottom: 12px;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  max-width: 720px;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 16px;
-}
-
-/* .Button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #f5f5f5;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.Button:hover {
-  background-color: #eaeaea;
-}
- */
-
- .Button {
-  background-color: #4a90e2;
+.Button {
+  background: linear-gradient(135deg, #72edf2 0%, #5151e5 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 28px;
   font-size: 1rem;
-  border-radius: 6px;
+  border-radius: 10px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(81, 81, 229, 0.3);
+  transition: all 0.3s ease;
+  margin-bottom: 16px;
 }
 
 .Button:hover {
-  background-color: #3b7cc4;
-  cursor: pointer;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(81, 81, 229, 0.4);
+  background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
 }
+
+.inputRowHorizontal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 720px;
+  padding: 0 200px;
+  margin-left: auto;
+  margin-right: auto;
+  transform: translateX(-180px);
+}
+
+.inputWide {
+  flex-grow: 1;
+  padding: 20px;
+  font-size: 1.25rem;
+  border-radius: 12px;
+  border: 2px solid #a0c4ff;
+  background-color: #f0f8ff;
+  color: #333;
+  box-shadow: 0 4px 8px rgba(160, 196, 255, 0.3);
+}
+
+.inputWide::placeholder {
+  color: #888;
+}
+
+.inputWide:focus {
+  outline: none;
+  border-color: #80b3ff;
+  box-shadow: 0 0 10px rgba(128, 179, 255, 0.6);
+}
+
+.clearBtn {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+  color: #2e4a2f;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(150, 230, 161, 0.3);
+}
+
+.clearBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(150, 230, 161, 0.4);
+  background: linear-gradient(135deg, #c2f7b0 0%, #89e4b7 100%);
+}
+
+.descriptionText {
+  margin-top: 36px;
+  margin-bottom: 24px;
+  font-size: 1.2rem;
+  line-height: 1.8;
+  max-width: 720px;
+  text-align: center;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #97c2fb 0%, #e0f2fe 100%);
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  color: #1e3a8a;
+  border: 1px solid #bfdbfe;
+}
+
+
+
+
