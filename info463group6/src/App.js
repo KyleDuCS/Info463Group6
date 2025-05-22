@@ -198,13 +198,14 @@ function App() {
 
   return (
     <div className="App">
-      <div style={{ margin: "24px 0 12px 0", fontSize: "1.1em" }}>
+      <div className="descriptionText">
         {showGestures
           ? "Click on the \"Add Gesture\" button to add a new gesture. Then follow the instructions in the box to complete the gesture. You cannot edit a gesture after you've created it. You must delete the gesture by clicking on the \"X\" button to delete the gesture."
           : "The box below indicates the input area. The larger box below is where you can draw a gesture and have it input a word. You must click on the \"Modified Gestures\" button to add your gesture to word mapping. Additionally the keyboard beow is a swipe keyboard."
         }
       </div>
       <button
+        className="Button"
         onClick={() => setShowGestures((v) => !v)}
         style={{ marginBottom: "18px" }}
       >
@@ -213,6 +214,7 @@ function App() {
       {showGestures ? (
         <div>
           <button
+            className="Button"
             style={{ marginBottom: "18px" }}
             onClick={() => setShowAddGesture(true)}
           >
