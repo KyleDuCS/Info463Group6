@@ -199,10 +199,18 @@ function App() {
   return (
     <div className="App">
       <div className="descriptionText">
-        {showGestures
+        {/* {showGestures
           ? "Click on the \"Add Gesture\" button to add a new gesture. Then follow the instructions in the box to complete the gesture. You cannot edit a gesture after you've created it. You must delete the gesture by clicking on the \"X\" button to delete the gesture."
           : "The box below indicates the input area. The larger box below is where you can draw a gesture and have it input a word. You must click on the \"Modified Gestures\" button to add your gesture to word mapping. Additionally the keyboard beow is a swipe keyboard."
-        }
+        } */}
+        <p style={{ fontWeight: "bold", fontSize: "1.3rem", marginBottom: "12px" }}>
+          This is a swipe-to-text keyboard with gesture input.
+        </p>
+        👉 Use the keyboard to swipe words as usual.
+        <br />
+        ✏️ Draw a gesture in the box to auto-fill a custom word.
+        <br />
+        🔧 Click "Modified Gestures" to customize your gestures.
       </div>
       <button
         className="Button"
