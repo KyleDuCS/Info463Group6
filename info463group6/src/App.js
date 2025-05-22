@@ -19,6 +19,17 @@ function App() {
   const [gestureWordMap, setGestureWordMap] = useState({
   });
 
+  useEffect(() => {
+    const savedMode = localStorage.getItem("showGestures");
+    if (savedMode === "true") {
+      setShowGestures(true);
+    }
+  }, []);
+  
+  useEffect(() => {
+    localStorage.setItem("showGestures", showGestures);
+  }, [showGestures]);
+
   // For gesture adding modal
   const [showAddGesture, setShowAddGesture] = useState(false);
   const [newGestureWord, setNewGestureWord] = useState("");
@@ -199,19 +210,15 @@ function App() {
   return (
     <div className="App">
       <div className="descriptionText">
-        {/* {showGestures
-          ? "Click on the \"Add Gesture\" button to add a new gesture. Then follow the instructions in the box to complete the gesture. You cannot edit a gesture after you've created it. You must delete the gesture by clicking on the \"X\" button to delete the gesture."
-          : "The box below indicates the input area. The larger box below is where you can draw a gesture and have it input a word. You must click on the \"Modified Gestures\" button to add your gesture to word mapping. Additionally the keyboard beow is a swipe keyboard."
-        } */}
-        <p style={{ fontWeight: "bold", fontSize: "1.3rem", marginBottom: "12px" }}>
-          This is a swipe-to-text keyboard with gesture input.
-        </p>
-        👉 Use the keyboard to swipe words as usual.
-        <br />
-        ✏️ Draw a gesture in the box to auto-fill a custom word.
-        <br />
-        🔧 Click "Modified Gestures" to customize your gestures.
+        <h2 style={{ marginBottom: "12px" }}>🧠 Smart Swipe Keyboard</h2>
+        <p>Welcome to your gesture-powered keyboard experience! Here's what you can do:</p>
+        <ul style={{ textAlign: "left", marginTop: "16px" }}>
+          <li>🖐️ <strong>Swipe</strong> over the keyboard to type like a pro</li>
+          <li>✍️ <strong>Draw gestures</strong> in the canvas to insert custom words</li>
+          <li>⚙️ <strong>Tap "Modify Gestures"</strong> above the canvas to customize them</li>
+        </ul>
       </div>
+      
       <button
         className="Button"
         onClick={() => setShowGestures((v) => !v)}
@@ -219,6 +226,7 @@ function App() {
       >
         {showGestures ? "Back to Keyboard" : "Modified Gestures"}
       </button>
+
       {showGestures ? (
         <div>
           <button
@@ -228,6 +236,7 @@ function App() {
           >
             Add Gesture
           </button>
+
           <GestureList
             gestureWordMap={gestureWordMap}
             onDeleteGesture={gestureKey => {
@@ -288,41 +297,33 @@ function App() {
         <div>
           {!showGestures && (
             <div>
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "18px" }}>
-                <input
+              <div className="inputRowHorizontal">
+              <input
                   ref={inputRef}
-                  className="input"
+                  className="inputWide"
                   placeholder="Swipe over the virtual keyboard to start"
-                  style={{ display: "block", marginRight: "8px", width: "300px" }}
                 />
                 <button
+                  className="clearBtn"
                   onClick={() => {
                     if (inputRef.current) {
                       inputRef.current.value = "";
                       if (keyboardRef.current) keyboardRef.current.setInput("");
                     }
                   }}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    background: "#f5f5f5",
-                    cursor: "pointer"
-                  }}
-                  aria-label="Clear input"
                 >
                   Clear
                 </button>
               </div>
+
               <div className="keyboardContainer" style={{ display: "flex", justifyContent: "center" }}>
                 <div className="simple-keyboard"></div>
                 <canvas
                 ref={canvasRef}
                 id="gestureCanvas"
                 width="500"
-                height="250"
+                height="200"
                 style={{
-                  border: "1px solid #ccc",
                   display: "block",
                   margin: "0 auto 18px auto",
                   maxWidth: "100%"
