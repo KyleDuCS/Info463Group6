@@ -55,6 +55,9 @@ function App() {
           if (inputRef.current) inputRef.current.value = input;
         },
         onKeyPress: button => {
+          // Highlight the pressed key
+          highlightKey(button);
+
           if (button === "{shift}" || button === "{lock}") {
             const currentLayout = keyboardRef.current.options.layoutName;
             const shiftToggle = currentLayout === "default" ? "shift" : "default";
@@ -86,6 +89,31 @@ function App() {
         }
       });
     }, 0);
+
+    const highlightKey = (button) => {
+      // Remove highlight from all keys
+      document.querySelectorAll('.hg-button').forEach(el => {
+        el.classList.remove('key-highlight');
+      });
+
+      // Add highlight to the pressed key
+      // For special keys, simple-keyboard uses their label as class, e.g. hg-button-bksp
+      let selector = `.hg-button[data-skbtn="${button}"]`;
+      // For space, shift, etc., fallback to class
+      if (button === "{space}") selector = `.hg-button.hg-button-space`;
+      if (button === "{shift}") selector = `.hg-button.hg-button-shift`;
+      if (button === "{bksp}") selector = `.hg-button.hg-button-bksp`;
+      if (button === "{lock}") selector = `.hg-button.hg-button-lock`;
+      if (button === "{enter}") selector = `.hg-button.hg-button-enter`;
+
+      const keyEl = document.querySelector(selector);
+      if (keyEl) {
+        keyEl.classList.add('key-highlight');
+        setTimeout(() => {
+          keyEl.classList.remove('key-highlight');
+        }, 150); // Highlight duration in ms
+      }
+    };
 
     const handleInput = event => {
       if (keyboardRef.current) keyboardRef.current.setInput(event.target.value);

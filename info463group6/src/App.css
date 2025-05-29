@@ -57,6 +57,14 @@
   margin-bottom: 16px;
 }
 
+/* Highlight effect for selected key */
+.key-highlight {
+  background: #fbbf24 !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 8px #fbbf24;
+  transition: background 0.1s, color 0.1s;
+}
+
 .Button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(81, 81, 229, 0.4);
