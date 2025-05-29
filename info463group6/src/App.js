@@ -15,7 +15,7 @@ function App() {
   const canvasRef = useRef(null);
   const keyboardRef = useRef(null);
   const recognizerRef = useRef(null);
-
+  const [points, setPoints] = useState([]);
   const [showGestures, setShowGestures] = useState(false);
   const [gestureWordMap, setGestureWordMap] = useState({
   });
@@ -125,22 +125,20 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
-    let points = [];
 
     const handleMouseDown = e => {
       drawing = true;
-      points = [];
+      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
-      points.push({ X: e.offsetX, Y: e.offsetY });
     };
 
     const handleMouseMove = e => {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      points.push({ X: e.offsetX, Y: e.offsetY });
+      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
     };
 
     const handleMouseUp = () => {
@@ -187,54 +185,38 @@ function App() {
     const canvas = addCanvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
-    let points = [];
-
+  
     const handleMouseDown = e => {
       drawing = true;
-      points = [];
+      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
-      points.push({ X: e.offsetX, Y: e.offsetY });
     };
-
+  
     const handleMouseMove = e => {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      points.push({ X: e.offsetX, Y: e.offsetY });
+      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
     };
-
+  
     const handleMouseUp = () => {
       drawing = false;
       ctx.closePath();
-      // Save gesture
-      if (points.length > 5 && newGestureWord) {
-        const gestureKey = JSON.stringify(points);
-        recognizerRef.current.AddGesture(gestureKey, points);
-        setGestureWordMap(prev => ({
-          ...prev,
-          [gestureKey]: newGestureWord.trim()
-        }));
-        setShowAddGesture(false);
-        setNewGestureWord("");
-        setTimeout(() => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }, 200);
-        window.alert(`Gesture saved! Now drawing this gesture will input "${newGestureWord.trim()}"`);
-      }
     };
-
+  
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseup", handleMouseUp);
-
+  
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [showAddGesture, newGestureWord]);
+  }, [showAddGesture]);
+  
 
   // Test mode state
   const [testMode, setTestMode] = useState(false);
@@ -417,22 +399,20 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
-    let points = [];
 
     const handleMouseDown = e => {
       drawing = true;
-      points = [];
+      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
-      points.push({ X: e.offsetX, Y: e.offsetY });
     };
 
     const handleMouseMove = e => {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      points.push({ X: e.offsetX, Y: e.offsetY });
+      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
     };
 
     const handleMouseUp = () => {
@@ -637,16 +617,40 @@ function App() {
                   height={200}
                   style={{ border: "1px solid #ccc", marginBottom: 8 }}
                 />
-                <div>
+                
+                <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
                   <button
+                    className="clearBtn"
                     onClick={() => setShowAddGesture(false)}
-                    style={{ marginRight: 8 }}
                   >
                     Cancel
                   </button>
-                  <span style={{ color: "#888" }}>
-                    Draw the gesture and release mouse to save
-                  </span>
+                  <button
+                      className="clearBtn"
+                      style={{ background: "#93c5fd", color: "#1e3a8a" }}
+                      onClick={() => {
+                        if (points.length > 5 && newGestureWord.trim()) {
+                          const gestureKey = JSON.stringify(points);
+                          recognizerRef.current.AddGesture(gestureKey, points);
+                          setGestureWordMap(prev => ({
+                            ...prev,
+                            [gestureKey]: newGestureWord.trim()
+                          }));
+                          setShowAddGesture(false);
+                          setNewGestureWord("");
+                          setPoints([]);
+                          const canvas = addCanvasRef.current;
+                          if (canvas) {
+                            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+                          }
+                          window.alert(`Gesture saved! Now drawing this gesture will input "${newGestureWord.trim()}"`);
+                        } else {
+                          alert("Please draw a gesture and enter a word before saving.");
+                        }
+                      }}
+                    >
+                      Save
+                  </button>
                 </div>
               </div>
             </div>
