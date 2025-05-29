@@ -237,6 +237,9 @@ function App() {
   const [entryLog, setEntryLog] = useState([]);
   const [testInput, setTestInput] = useState("");
 
+  // Track per-sentence input and timing for metrics
+  const [sentenceResults, setSentenceResults] = useState([]);
+
   // Helper to start test
   const startTest = () => {
     setTestMode(true);
@@ -248,7 +251,7 @@ function App() {
   };
 
   // Helper to end test and download log
-  const endTest = () => {
+  const endTest = (clearResults = true) => {
     setTestMode(false);
     setTestStarted(false);
     // Download log as JSON
@@ -257,7 +260,66 @@ function App() {
     setEntryLog([]);
     setTestInput("");
     setCurrentSentenceIdx(0);
+    if (clearResults) setSentenceResults([]);
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  // Calculate and show metrics after all sentences
+  const calculateAndShowMetrics = (results) => {
+    let totalMSD = 0;
+    let totalRawWPM = 0;
+    let totalAdjWPM = 0;
+    let totalTime = 0;
+    let totalChars = 0;
+    let totalSentences = results.length;
+
+    results.forEach(({ target, input, msElapsed }) => {
+      const { msd, rawWPM, adjWPM } = adjustedWPM(target, input, msElapsed);
+      totalMSD += msd;
+      totalRawWPM += rawWPM;
+      totalAdjWPM += adjWPM;
+      totalTime += msElapsed;
+      totalChars += input.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ").trim().length;
+    });
+
+    const avgMSD = totalMSD / totalSentences;
+    const avgRawWPM = totalRawWPM / totalSentences;
+    const avgAdjWPM = totalAdjWPM / totalSentences;
+
+    // Show metrics to user
+    window.alert(
+      `Test Complete!\n\n` +
+      `Average Minimum String Distance (MSD): ${avgMSD.toFixed(2)}\n` +
+      `Average Raw WPM: ${avgRawWPM.toFixed(2)}\n` +
+      `Average Adjusted WPM: ${avgAdjWPM.toFixed(2)}\n` +
+      `Total Time: ${(totalTime / 1000).toFixed(1)} seconds`
+    );
+
+    // Optionally: Save metrics in the log for download
+    const metricsSummary = {
+      avgMSD,
+      avgRawWPM,
+      avgAdjWPM,
+      totalTimeMs: totalTime,
+      totalChars,
+      totalSentences,
+      perSentence: results.map((r, i) => {
+        const { msd, rawWPM, adjWPM } = adjustedWPM(r.target, r.input, r.msElapsed);
+        return {
+          sentenceIdx: i,
+          target: r.target,
+          input: r.input,
+          msElapsed: r.msElapsed,
+          msd,
+          rawWPM,
+          adjWPM
+        };
+      })
+    };
+    // Download metrics as JSON
+    const blob = new Blob([JSON.stringify(metricsSummary, null, 2)], { type: "application/json" });
+    saveAs(blob, "text_entry_metrics.json");
+    setSentenceResults([]); // Clear for next test
   };
 
   // Record keystrokes and gestures in test mode
@@ -374,14 +436,74 @@ function App() {
     // eslint-disable-next-line
   }, [testMode, testStarted, gestureWordMap, testInput]);
 
+  // Helper: Minimum String Distance (Levenshtein Distance)
+  function minStringDistance(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (a[i - 1] === b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+        }
+      }
+    }
+    return dp[m][n];
+  }
+
+  // Helper: Adjusted Words Per Minute (WPM)
+  function adjustedWPM(target, input, msElapsed) {
+    // Remove punctuation and extra spaces for fair comparison
+    const cleanTarget = target.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ").trim();
+    const cleanInput = input.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ").trim();
+    const msd = minStringDistance(cleanTarget, cleanInput);
+    const charCount = cleanInput.length;
+    const minutes = msElapsed / 60000;
+    // Standard WPM: (chars/5) / minutes
+    const rawWPM = minutes > 0 ? (charCount / 5) / minutes : 0;
+    // Adjusted WPM: penalize for errors (subtract MSD from char count)
+    const adjWPM = minutes > 0 ? ((charCount - msd) / 5) / minutes : 0;
+    return { msd, rawWPM: Math.max(0, rawWPM), adjWPM: Math.max(0, adjWPM) };
+  }
+
   // Handler for sentence completion
   const handleNextSentence = () => {
+    // Save the result for this sentence
+    const target = testSentences[currentSentenceIdx];
+    const input = testInput;
+    // Find first and last timestamp for this sentence
+    const sentenceEntries = entryLog.filter(e => e);
+    const first = sentenceEntries.length > 0 ? sentenceEntries[0].timestamp : null;
+    const last = sentenceEntries.length > 0 ? sentenceEntries[sentenceEntries.length - 1].timestamp : null;
+    const msElapsed = first !== null && last !== null ? last - first : 0;
+
+    setSentenceResults(prev => [
+      ...prev,
+      {
+        target,
+        input,
+        msElapsed,
+        entryLog: sentenceEntries
+      }
+    ]);
+
     if (currentSentenceIdx < testSentences.length - 1) {
       setCurrentSentenceIdx(idx => idx + 1);
       setTestInput("");
+      setEntryLog([]);
       if (inputRef.current) inputRef.current.value = "";
     } else {
-      endTest();
+      // All sentences done, calculate metrics and show/download
+      calculateAndShowMetrics([...sentenceResults, {
+        target,
+        input,
+        msElapsed,
+        entryLog: sentenceEntries
+      }]);
+      endTest(false); // Don't clear sentenceResults yet
     }
   };
 
@@ -389,12 +511,12 @@ function App() {
     <div className="App">
       <div className="descriptionText">
         <h2 style={{ marginBottom: "12px" }}>🧠 Smart Swipe Keyboard</h2>
-        <p>Welcome to your gesture-powered keyboard experience! Here's what you can do:</p>
+        <p>Welcome to your gesture-powered keyboard experience! You can swipe on the keyboard and canvas sections to input a word! Here's the steps to start a test:</p>
         <ul style={{ textAlign: "left", marginTop: "16px" }}>
-          <li>🖐️ <strong>Swipe</strong> over the keyboard to type like a pro</li>
-          <li>✍️ <strong>Draw gestures</strong> in the canvas to insert custom words</li>
-          <li>⚙️ <strong>Tap "Modify Gestures"</strong> above the canvas to customize them. Do this first before starting a test</li>
-          <li>📝 <strong>Tap "Start Test"</strong> to record your text entry stream</li>
+          <li>1. Start by adding 3 gestures to word mappings</li>
+          <li>2. Press on the <strong>"Back to Keyboard"</strong> button</li>
+          <li>3. Test your gestures on that keyboard and clear before starting the test.</li>
+          <li>4. Press on the <strong>"Start Test"</strong> button to begin the test</li>
         </ul>
       </div>
 
