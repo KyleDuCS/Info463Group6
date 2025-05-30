@@ -17,8 +17,10 @@ function App() {
   const recognizerRef = useRef(null);
   const [points, setPoints] = useState([]);
   const [showGestures, setShowGestures] = useState(false);
-  const [gestureWordMap, setGestureWordMap] = useState({
-  });
+  const [gestureWordMap, setGestureWordMap] = useState({});
+
+  // SEPARATE STATE FOR ADD GESTURE MODAL
+  const [addGesturePoints, setAddGesturePoints] = useState([]);
 
   useEffect(() => {
     const savedMode = localStorage.getItem("showGestures");
@@ -125,10 +127,12 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
+    let currentPoints = []; // Use local variable to avoid stale closure
 
     const handleMouseDown = e => {
       drawing = true;
-      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [{ X: e.offsetX, Y: e.offsetY }];
+      setPoints(currentPoints);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
@@ -138,15 +142,18 @@ function App() {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [...currentPoints, { X: e.offsetX, Y: e.offsetY }];
+      setPoints(currentPoints);
     };
 
     const handleMouseUp = () => {
       drawing = false;
       ctx.closePath();
 
-      if (points.length > 5) {
-        const result = recognizerRef.current.Recognize(points);
+      // Use currentPoints instead of stale points from state
+      if (currentPoints.length > 5) {
+        const result = recognizerRef.current.Recognize(currentPoints);
+        console.log("Recognition result:", result); // DEBUG
         if (result.Score > 0.5 && gestureWordMap[result.Name]) {
           const word = gestureWordMap[result.Name];
           const currentValue = inputRef.current.value;
@@ -179,16 +186,18 @@ function App() {
     // eslint-disable-next-line
   }, [showGestures, gestureWordMap]);
 
-  // Add gesture modal logic
+  // FIXED: Add gesture modal logic with separate points state
   useEffect(() => {
     if (!showAddGesture) return;
     const canvas = addCanvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
+    let currentPoints = []; // Use local variable for immediate access
   
     const handleMouseDown = e => {
       drawing = true;
-      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [{ X: e.offsetX, Y: e.offsetY }];
+      setAddGesturePoints(currentPoints);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
@@ -198,12 +207,14 @@ function App() {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [...currentPoints, { X: e.offsetX, Y: e.offsetY }];
+      setAddGesturePoints(currentPoints);
     };
   
     const handleMouseUp = () => {
       drawing = false;
       ctx.closePath();
+      console.log("Drawing completed. Points:", currentPoints.length); // DEBUG
     };
   
     canvas.addEventListener("mousedown", handleMouseDown);
@@ -216,7 +227,48 @@ function App() {
       canvas.removeEventListener("mouseup", handleMouseUp);
     };
   }, [showAddGesture]);
-  
+
+  // FIXED: Save gesture function
+  const saveGesture = () => {
+    console.log("Save button clicked"); // DEBUG
+    console.log("addGesturePoints length:", addGesturePoints.length); // DEBUG
+    console.log("newGestureWord:", newGestureWord.trim()); // DEBUG
+    
+    if (addGesturePoints.length > 5 && newGestureWord.trim()) {
+      const gestureKey = JSON.stringify(addGesturePoints);
+      console.log("Adding gesture with key:", gestureKey); // DEBUG
+      
+      recognizerRef.current.AddGesture(gestureKey, addGesturePoints);
+      setGestureWordMap(prev => ({
+        ...prev,
+        [gestureKey]: newGestureWord.trim()
+      }));
+      
+      // Clear modal state
+      setShowAddGesture(false);
+      setNewGestureWord("");
+      setAddGesturePoints([]);
+      
+      // Clear canvas
+      const canvas = addCanvasRef.current;
+      if (canvas) {
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      window.alert(`Gesture saved! Now drawing this gesture will input "${newGestureWord.trim()}"`);
+    } else {
+      alert("Please draw a gesture and enter a word before saving.");
+    }
+  };
+
+  // FIXED: Clear gesture canvas function
+  const clearGestureCanvas = () => {
+    const canvas = addCanvasRef.current;
+    if (canvas) {
+      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      setAddGesturePoints([]);
+    }
+  };
 
   // Test mode state
   const [testMode, setTestMode] = useState(false);
@@ -332,7 +384,7 @@ function App() {
     setSentenceResults([]); // Clear for next test
   };
 
-  // Record keystrokes and gestures in test mode
+  // FIXED: Record keystrokes and gestures in test mode
   useEffect(() => {
     if (!testMode || !testStarted) return;
 
@@ -371,17 +423,18 @@ function App() {
     // Handler for gestures
     const handleGesture = (word) => {
       const now = Date.now();
+      const newValue = testInput + (testInput ? " " : "") + word + " ";
       setEntryLog((prev) => [
         ...prev,
         {
           type: "gesture",
-          value: testInput + (testInput ? " " : "") + word + " ",
+          value: newValue,
           gesture: word,
           timestamp: now
         }
       ]);
-      setTestInput((prev) => (prev ? prev.trim() + " " + word + " " : word + " "));
-      if (inputRef.current) inputRef.current.value = testInput ? testInput.trim() + " " + word + " " : word + " ";
+      setTestInput(newValue);
+      if (inputRef.current) inputRef.current.value = newValue;
     };
 
     // Attach listeners
@@ -395,14 +448,16 @@ function App() {
       });
     }
 
-    // Patch gesture canvas logic
+    // FIXED: Patch gesture canvas logic with proper closure handling
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
+    let currentPoints = []; // Use local variable to avoid stale closure
 
     const handleMouseDown = e => {
       drawing = true;
-      setPoints([{ X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [{ X: e.offsetX, Y: e.offsetY }];
+      setPoints(currentPoints);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.moveTo(e.offsetX, e.offsetY);
@@ -412,15 +467,17 @@ function App() {
       if (!drawing) return;
       ctx.lineTo(e.offsetX, e.offsetY);
       ctx.stroke();
-      setPoints(prev => [...prev, { X: e.offsetX, Y: e.offsetY }]);
+      currentPoints = [...currentPoints, { X: e.offsetX, Y: e.offsetY }];
+      setPoints(currentPoints);
     };
 
     const handleMouseUp = () => {
       drawing = false;
       ctx.closePath();
 
-      if (points.length > 5) {
-        const result = recognizerRef.current.Recognize(points);
+      // Use currentPoints instead of stale points from state
+      if (currentPoints.length > 5) {
+        const result = recognizerRef.current.Recognize(currentPoints);
         if (result.Score > 0.5 && gestureWordMap[result.Name]) {
           const word = gestureWordMap[result.Name];
           handleGesture(word);
@@ -602,7 +659,7 @@ function App() {
             >
               <div style={{ background: "#fff", padding: 24, borderRadius: 8, textAlign: "center" }}>
                 <h3>Draw your gesture</h3>
-                <p> Please input the word before drawing the image</p>
+                <p>Please input the word before drawing the image</p>
                 <input
                   type="text"
                   placeholder="Associated Word"
@@ -621,35 +678,27 @@ function App() {
                 <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
                   <button
                     className="clearBtn"
-                    onClick={() => setShowAddGesture(false)}
+                    onClick={() => {
+                      setShowAddGesture(false);
+                      setNewGestureWord("");
+                      setAddGesturePoints([]);
+                    }}
                   >
                     Cancel
                   </button>
                   <button
-                      className="clearBtn"
-                      style={{ background: "#93c5fd", color: "#1e3a8a" }}
-                      onClick={() => {
-                        if (points.length > 5 && newGestureWord.trim()) {
-                          const gestureKey = JSON.stringify(points);
-                          recognizerRef.current.AddGesture(gestureKey, points);
-                          setGestureWordMap(prev => ({
-                            ...prev,
-                            [gestureKey]: newGestureWord.trim()
-                          }));
-                          setShowAddGesture(false);
-                          setNewGestureWord("");
-                          setPoints([]);
-                          const canvas = addCanvasRef.current;
-                          if (canvas) {
-                            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-                          }
-                          window.alert(`Gesture saved! Now drawing this gesture will input "${newGestureWord.trim()}"`);
-                        } else {
-                          alert("Please draw a gesture and enter a word before saving.");
-                        }
-                      }}
-                    >
-                      Save
+                    className="clearBtn"
+                    style={{ background: "#fbbf24", color: "#1e3a8a" }}
+                    onClick={clearGestureCanvas}
+                  >
+                    Clear Canvas
+                  </button>
+                  <button
+                    className="clearBtn"
+                    style={{ background: "#93c5fd", color: "#1e3a8a" }}
+                    onClick={saveGesture}
+                  >
+                    Save
                   </button>
                 </div>
               </div>
@@ -729,9 +778,5 @@ function App() {
     </div>
   );
 }
-
-// Add this import at the top of the file (if not present):
-// npm install file-saver
-// import { saveAs } from "file-saver";
 
 export default App;
