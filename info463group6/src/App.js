@@ -560,6 +560,7 @@ function App() {
       setTestInput("");
       setEntryLog([]);
       if (inputRef.current) inputRef.current.value = "";
+      if (keyboardRef.current) keyboardRef.current.setInput("");
     } else {
       // All sentences done, calculate metrics and show/download
       calculateAndShowMetrics([...sentenceResults, {
@@ -718,8 +719,11 @@ function App() {
                       ? "Type the sentence above using swipe/gesture"
                       : "Swipe over the virtual keyboard to start"
                   }
-                  value={testMode ? testInput : undefined}
-                  onChange={testMode ? (e) => setTestInput(e.target.value) : undefined}
+                  value={testInput}
+                  onChange={e => {
+                    setTestInput(e.target.value);
+                    if (keyboardRef.current) keyboardRef.current.setInput(e.target.value);
+                  }}
                   disabled={testMode && !testStarted}
                 />
                 {!testMode && (
@@ -741,7 +745,9 @@ function App() {
                     style={{ background: "#a7f3d0" }}
                     onClick={() => {
                       setTestInput("");
+                      setEntryLog([]); // Also clear the entry log!
                       if (inputRef.current) inputRef.current.value = "";
+                      if (keyboardRef.current) keyboardRef.current.setInput("");
                     }}
                   >
                     Clear
