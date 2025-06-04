@@ -317,9 +317,23 @@ function App() {
   const endTest = (clearResults = true) => {
     setTestMode(false);
     setTestStarted(false);
-    // Download log as JSON
-    const blob = new Blob([JSON.stringify(entryLog, null, 2)], { type: "application/json" });
+
+    // Combine all entryLogs from sentenceResults
+    let allLogs = [];
+    sentenceResults.forEach(r => {
+      if (Array.isArray(r.entryLog)) {
+        allLogs = allLogs.concat(r.entryLog);
+      }
+    });
+    // Also include the current entryLog if it's not empty and not already in sentenceResults
+    if (entryLog.length > 0) {
+      allLogs = allLogs.concat(entryLog);
+    }
+
+    // Download combined log as JSON
+    const blob = new Blob([JSON.stringify(allLogs, null, 2)], { type: "application/json" });
     saveAs(blob, "text_entry_log.json");
+
     setEntryLog([]);
     setTestInput("");
     setCurrentSentenceIdx(0);
