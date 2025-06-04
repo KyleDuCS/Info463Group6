@@ -325,7 +325,6 @@ function App() {
         allLogs = allLogs.concat(r.entryLog);
       }
     });
-    // Also include the current entryLog if it's not empty and not already in sentenceResults
     if (entryLog.length > 0) {
       allLogs = allLogs.concat(entryLog);
     }
@@ -333,6 +332,27 @@ function App() {
     // Download combined log as JSON
     const blob = new Blob([JSON.stringify(allLogs, null, 2)], { type: "application/json" });
     saveAs(blob, "text_entry_log.json");
+
+    // Always generate metrics if there are results
+    const allResults = [...sentenceResults];
+    if (entryLog.length > 0) {
+      // If the current sentence hasn't been pushed yet, add it
+      const target = testSentences[currentSentenceIdx];
+      const input = testInput;
+      const sentenceEntries = entryLog.filter(e => e);
+      const first = sentenceEntries.length > 0 ? sentenceEntries[0].timestamp : null;
+      const last = sentenceEntries.length > 0 ? sentenceEntries[sentenceEntries.length - 1].timestamp : null;
+      const msElapsed = first !== null && last !== null ? last - first : 0;
+      allResults.push({
+        target,
+        input,
+        msElapsed,
+        entryLog: sentenceEntries
+      });
+    }
+    if (allResults.length > 0) {
+      calculateAndShowMetrics(allResults);
+    }
 
     setEntryLog([]);
     setTestInput("");
