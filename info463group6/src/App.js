@@ -309,7 +309,8 @@ function App() {
     setCurrentSentenceIdx(0);
     setEntryLog([]);
     setTestInput("");
-    if (inputRef.current) inputRef.current.value = "";
+    if (inputRef.current) inputRef.current.value = ""; // <-- Add this line
+    if (keyboardRef.current) keyboardRef.current.setInput(""); // <-- Add this line for virtual keyboard
   };
 
   // Helper to end test and download log
@@ -586,7 +587,7 @@ function App() {
         </ul>
       </div>
 
-      {!testMode && (
+      {!testMode && !showGestures && (
         <button
           className="Button"
           style={{ marginBottom: "18px", background: "#fbbf24" }}
@@ -726,33 +727,6 @@ function App() {
                   }}
                   disabled={testMode && !testStarted}
                 />
-                {!testMode && (
-                  <button
-                    className="clearBtn"
-                    onClick={() => {
-                      if (inputRef.current) {
-                        inputRef.current.value = "";
-                        if (keyboardRef.current) keyboardRef.current.setInput("");
-                      }
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
-                {testMode && (
-                  <button
-                    className="clearBtn"
-                    style={{ background: "#a7f3d0" }}
-                    onClick={() => {
-                      setTestInput("");
-                      setEntryLog([]); // Also clear the entry log!
-                      if (inputRef.current) inputRef.current.value = "";
-                      if (keyboardRef.current) keyboardRef.current.setInput("");
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
                 {testMode && (
                   <button
                     className="clearBtn"
