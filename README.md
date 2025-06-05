@@ -4,9 +4,9 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## How to start the website
 
-In the project directory, you can run:
+Run the following commands.
 
 ### `cd info463group6`
 ### `npm start`
