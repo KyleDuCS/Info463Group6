@@ -1,18 +1,18 @@
-# Info463Group6
 
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Gesture-Powered Keyboard – Swipe-to-Text Web App
 
-## How to start the website
+A smart and accessible keyboard that allows users to input text by swiping across keys. Features include custom gesture creation and mapping, real-time feedback, and a responsive web interface built with React, JavaScript, HTML, and CSS.
 
-Run the following commands.
 
-### `cd info463group6`
-### `npm start`
+🚀 Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Swipe-to-Text Input – Enter words by swiping across the keyboard instead of tapping individual keys.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Custom Gesture Mapping – Create, save, and edit personalized swipe gestures linked to words or phrases.
+
+Real-Time Feedback – Visual indicators show swipe paths and recognition results instantly.
+
+Gesture Testing Mode – Test accuracy with clear/reset options and performance validation.
+
+Responsive Design – Works across devices for seamless cross-platform use.
