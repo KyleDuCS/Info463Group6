@@ -5,7 +5,7 @@
 A smart and accessible keyboard that allows users to input text by swiping across keys. Features include custom gesture creation and mapping, real-time feedback, and a responsive web interface built with React, JavaScript, HTML, and CSS.
 
 
-🚀 Features
+## 🚀 Features
 
 Swipe-to-Text Input – Enter words by swiping across the keyboard instead of tapping individual keys.
 
